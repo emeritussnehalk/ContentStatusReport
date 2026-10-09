@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Content Status Report</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{--green:#075b4b;--leaf:#1a886d;--mint:#eaf6ef;--ink:#162d28;--muted:#64736f;--line:#d8e4df;--paper:#fffdf9;--warn:#9d5b00;--red:#9b3425}
+    *{box-sizing:border-box} body{margin:0;background:#f2f7f3;color:var(--ink);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif}
+    header{background:white;color:var(--ink);padding:10px clamp(20px,5vw,56px);display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--line)}.brand-logo{width:190px;max-width:40vw;height:auto}.header-copy{border-left:1px solid #b9d8c9;padding-left:16px;line-height:1.15}.header-copy strong{display:block;color:var(--green);font-size:17px}.header-copy span{display:block;font-size:16px;margin-top:4px}
+    main{max-width:1400px;margin:28px auto;padding:0 24px 44px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:22px}.hero h1{font-size:29px;line-height:1.15;margin:0 0 7px;letter-spacing:-.7px}.hero p{color:var(--muted);margin:0;max-width:700px}
+    .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 5px 18px #07412b0b}.upload-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}.drop{border:1.5px dashed #78a899;background:#f8fcf9;border-radius:10px;padding:18px}.drop strong{display:block;color:var(--green);margin-bottom:4px}.drop small{color:var(--muted)}input[type=file]{margin-top:12px;max-width:100%}.file-list{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13px}.file-list li{padding:2px 0}
+    button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--green);color:white;font-size:14px}button:hover{background:#06483b}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#e5f0ea;color:var(--green);border:1px solid #bcd8c9}.secondary:hover{background:#d9e9df}.status{margin:14px 0 0;color:var(--muted)}.status.error{color:var(--red)}
+    .toolbar{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.toolbar input,.toolbar select{border:1px solid var(--line);border-radius:8px;background:white;padding:10px 12px;font:inherit;color:var(--ink)}.toolbar input{min-width:260px;flex:1}.toolbar .spacer{flex:1}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.chip{background:#e7f3ec;color:#145c49;border-radius:100px;padding:6px 10px;font-size:12px;font-weight:650}.chip.warning{background:#fff0d5;color:var(--warn)}.chip.bad{background:#f9e4e1;color:var(--red)}
+    .report{margin-top:16px}.report-sheet{display:none}.report-sheet.active{display:block}.section-title{color:var(--green);font-size:18px;margin:22px 0 10px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:white}table{width:100%;border-collapse:collapse;min-width:900px}th{background:var(--green);color:white;text-align:left;padding:11px 12px;font-size:12px;letter-spacing:.2px;position:sticky;top:0}td{padding:11px 12px;border-bottom:1px solid #e7eeea;vertical-align:top}tr:last-child td{border-bottom:0}.program td{background:var(--mint);color:var(--green);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.4px}.course-code{font-weight:700;white-space:nowrap}.status-text{white-space:pre-line;font-size:13px}.status-text.approved-cell{background:#dff3e6;color:#075b4b;font-weight:650}.empty{padding:42px;text-align:center;color:var(--muted);background:white;border:1px dashed var(--line);border-radius:10px}
+    @media(max-width:650px){header{padding:18px 20px}.sub{display:none}main{padding:0 14px}.upload-grid{grid-template-columns:1fr}.hero{display:block}.hero h1{font-size:25px}.toolbar input{min-width:100%}}
+  </style>
+</head>
+<body>
+  <header><img class="brand-logo" src="emeritus-logo.png.webp" alt="Emeritus"><div class="header-copy"><strong>India Higher Education</strong><span>Content Status Report</span></div></header>
+  <main>
+    <div class="hero"><div><h1>Content Status Report</h1><p>Upload the video and content-review workbooks to prepare a week-wise MBA and MCA content status report.</p></div></div>
+    <section class="panel">
+      <div class="upload-grid"><div class="drop"><strong>Upload source workbooks</strong><small>Upload both Excel files together. The tool identifies the source by its columns and uses only the <b>Content_Review_Records_V2</b> sheet for lecture notes, quizzes, and web links.</small><br><input id="files" type="file" accept=".xlsx,.xls" multiple><ul id="fileList" class="file-list"></ul></div><button id="generate" disabled>Generate report</button></div>
+      <div id="message" class="status">Select the two source workbooks to begin.</div>
+    </section>
+    <section id="results" hidden>
+      <div class="toolbar"><select id="period"><option value="W1-W3">W1–W3</option><option value="W4-W6">W4–W6</option><option value="W7-W9">W7–W9</option><option value="W10-W12">W10–W12</option></select><input id="search" type="search" placeholder="Search course code or name"><span class="spacer"></span><button id="download" class="secondary">Download Excel report</button></div>
+      <div id="summary" class="summary"></div><div id="report" class="report"></div>
+    </section>
+  </main>
+  <script>
+  const ROSTER=[
+    ['MBA',1,'OLMBA604','Consumer Behaviour'],['MBA',2,'OLMBA618','Service Marketing'],['MBA',3,'OLMBA620','Sales and Distribution Management'],['MBA',4,'OLMBA635','Strategic HRM'],['MBA',5,'OLMBA623','Costing Methods and Techniques'],['MBA',6,'OLMBA626','Wealth Tech and Lending Tech'],['MBA',7,'OLMBA629','Applied Fintech for Business'],['MBA',8,'OLMBA607','Materials Management'],['MBA',9,'OLMBA641','Project Management'],['MBA',10,'OLMBA644','Quality Management'],
+    ['MCA',11,'OLMCA611','Data Mining Techniques'],['MCA',12,'OLMCA615','Software Project Management'],['MCA',13,'OLMCA618','Data Visualization'],['MCA',14,'OLMCA610','Blockchain Technologies'],['MCA',15,'OLMCA622','Information Security'],['MCA',16,'OLMCA623','Penetration Testing']
+  ];
+  const PERIODS={'W1-W3':[1,2,3],'W4-W6':[4,5,6],'W7-W9':[7,8,9],'W10-W12':[10,11,12]};
+  const fileInput=document.querySelector('#files'), generateBtn=document.querySelector('#generate'), message=document.querySelector('#message');
+  let source={videos:[],content:[]}, report={};
+  const val=(row, names)=>{for(const n of names){if(Object.prototype.hasOwnProperty.call(row,n)) return row[n]} return ''};
+  const clean=v=>String(v??'').trim();
+  function codeFrom(v){const found=clean(v).match(/OLM(?:BA|CA)\d+/i);return found?found[0].toUpperCase():clean(v).toUpperCase()}
+  function normStatus(raw){const s=clean(raw);const u=s.toUpperCase().replace(/[_-]+/g,' ');if(!s)return 'Not Available';if(u==='APPROVED'||u.startsWith('APPROVED BY'))return 'Approved';if(u==='IN REVIEW'||u==='PENDING FOR REVIEW'||u==='EDIT READY')return 'Pending for review';if(u==='FACULTY COMMENTS RECEIVED')return 'Faculty comments received';return s.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase())}
+  function weekFromToc(v){const m=clean(v).match(/^(\d{1,2})(?:\.\d+)?/);return m?Number(m[1]):null}
+  async function readFile(file){const buf=await file.arrayBuffer();const wb=XLSX.read(buf,{type:'array',cellDates:true});let candidate=[];for(const name of wb.SheetNames){const rows=XLSX.utils.sheet_to_json(wb.Sheets[name],{defval:'',raw:false});candidate.push({name,rows})}return candidate}
+  fileInput.addEventListener('change',()=>{const files=[...fileInput.files];document.querySelector('#fileList').innerHTML=files.map(f=>`<li>${escapeHtml(f.name)}</li>`).join('');generateBtn.disabled=files.length<2;message.textContent=files.length?`${files.length} workbook${files.length>1?'s':''} selected.`:'Select the two source workbooks to begin.';message.className='status'});
+  generateBtn.addEventListener('click', async()=>{try{generateBtn.disabled=true;message.className='status';message.textContent='Reading uploaded workbooks…';source={videos:[],content:[]};for(const file of fileInput.files){for(const {name,rows} of await readFile(file)){
+      const cols=Object.keys(rows[0]||{});const hasToc=cols.some(c=>/TOC\s*Sr/i.test(c));const hasContent=cols.includes('Content Type')&&cols.includes('Status')&&cols.some(c=>/^Subject Code$/i.test(c));
+      if(hasToc) source.videos.push(...rows);if(hasContent&&name==='Content_Review_Records_V2') source.content.push(...rows);
+    }}
+    if(!source.videos.length)throw new Error('No video-data sheet was found. Expected a sheet with “TOC Sr No.” and “Status”.');
+    if(!source.content.length)throw new Error('The “Content_Review_Records_V2” sheet was not found in the uploaded content-review workbook.');
+    report=buildReport();document.querySelector('#results').hidden=false;render();message.textContent=`Report created from ${source.videos.length} video records and ${source.content.length} content-review records.`;generateBtn.disabled=false;
+  }catch(e){message.textContent=e.message;message.className='status error';generateBtn.disabled=false}});
+  function buildReport(){const out={};for(const [label,weeks] of Object.entries(PERIODS)){out[label]=ROSTER.map(([program,no,code,name])=>({program,no,code,name,videos:summarizeVideos(code,weeks),notes:summarizeContent(code,weeks,'LECTURE_NOTES'),quiz:summarizeContent(code,weeks,'MCQ_QUIZZES'),links:summarizeContent(code,weeks,'WEB_LINKS')}))}return out}
+  function summarizeVideos(code,weeks){const items=source.videos.map(r=>({code:codeFrom(val(r,['Subject Code'])),toc:clean(val(r,['TOC Sr No.'])),week:weekFromToc(val(r,['TOC Sr No.'])),status:normStatus(val(r,['Status']))})).filter(r=>r.code===code&&weeks.includes(r.week)&&r.toc);if(!items.length)return 'Not Available';const statuses=[...new Set(items.map(x=>x.status))];if(statuses.length===1)return `${periodText(weeks)} - ${statuses[0]}`;const approved=items.filter(x=>x.status==='Approved');const exceptions=items.filter(x=>x.status!=='Approved');if(approved.length&&exceptions.length)return `${periodText(weeks)} - Approved\nexcept ${groupTocs(exceptions)} `;return groupTocs(items)}
+  function groupTocs(items){const groups={};items.forEach(x=>(groups[x.status]??=[]).push(x.toc));return Object.entries(groups).map(([status,tocs])=>`${tocs.join(', ')} - ${status}`).join('\n')}
+  function summarizeContent(code,weeks,type){const records=source.content.map(r=>({code:codeFrom(val(r,['Subject Code'])),week:Number(val(r,['Week'])),type:clean(val(r,['Content Type'])).toUpperCase(),status:normStatus(val(r,['Status']))})).filter(r=>r.code===code&&r.type===type&&weeks.includes(r.week));if(!records.length)return 'Not Available';const weekStatus=weeks.map(w=>{const found=records.filter(x=>x.week===w);return [w,found.length?worstStatus(found.map(x=>x.status)):'Not Available']});return compressWeeks(weekStatus)}
+  function worstStatus(statuses){if(statuses.includes('Not Available'))return 'Not Available';if(statuses.includes('Pending for review'))return 'Pending for review';const other=statuses.find(s=>s!=='Approved');return other||'Approved'}
+  function compressWeeks(pairs){let chunks=[],start=0;for(let i=1;i<=pairs.length;i++){if(i===pairs.length||pairs[i][1]!==pairs[start][1]){chunks.push(`${periodText(pairs.slice(start,i).map(x=>x[0]))} - ${pairs[start][1]}`);start=i}}return chunks.join('\n')}
+  function periodText(weeks){return weeks.length===1?`W${weeks[0]}`:`W${weeks[0]} to W${weeks[weeks.length-1]}`}
+  function isFullyApproved(value){return /^W\d+(?: to W\d+)? - Approved$/i.test(clean(value))}
+  function statusClass(value){return `status-text${isFullyApproved(value)?' approved-cell':''}`}
+  function render(){const label=document.querySelector('#period').value,q=document.querySelector('#search').value.trim().toLowerCase();const rows=report[label];const matches=rows.filter(r=>!q||r.code.toLowerCase().includes(q)||r.name.toLowerCase().includes(q));let html='',last='';for(const r of matches){if(last!==r.program){html+=`<tr class="program"><td colspan="7">${r.program}</td></tr>`;last=r.program}html+=`<tr><td>${r.no}</td><td class="course-code">${r.code}</td><td>${r.name}</td><td class="${statusClass(r.videos)}">${r.videos}</td><td class="${statusClass(r.notes)}">${r.notes}</td><td class="${statusClass(r.quiz)}">${r.quiz}</td><td class="${statusClass(r.links)}">${r.links}</td></tr>`}document.querySelector('#report').innerHTML=matches.length?`<div class="table-wrap"><table><thead><tr><th>S.No</th><th>Course Code</th><th>Course Name</th><th>Videos</th><th>Lecture Notes</th><th>Quiz</th><th>Web Links</th></tr></thead><tbody>${html}</tbody></table></div>`:'<div class="empty">No courses match your search.</div>';const values=matches.flatMap(x=>[x.videos,x.notes,x.quiz,x.links]);const unavailable=values.filter(x=>x==='Not Available').length;const pending=values.filter(x=>/Pending for review/i.test(x)).length;document.querySelector('#summary').innerHTML=`<span class="chip">${matches.length} courses shown</span><span class="chip">${source.videos.length} video records</span><span class="chip">${source.content.length} review records</span>${pending?`<span class="chip warning">${pending} pending items</span>`:''}${unavailable?`<span class="chip bad">${unavailable} not available</span>`:''}`}
+  document.querySelector('#period').addEventListener('change',render);document.querySelector('#search').addEventListener('input',render);
+  document.querySelector('#download').addEventListener('click',()=>{
+    const wb=XLSX.utils.book_new();
+    const aoa=[];
+    const approvedCells=[];
+    for(const [label,rows] of Object.entries(report)){
+      aoa.push([label]);
+      aoa.push(['S.No','Course Code','Course Name','Videos','Lecture Notes','Quiz','Web Links']);
+      let last='';
+      for(const row of rows){
+        if(last!==row.program){aoa.push([row.program]);last=row.program}
+        const outputRow=[row.no,row.code,row.name,row.videos,row.notes,row.quiz,row.links];
+        const sheetRow=aoa.length;
+        outputRow.slice(3).forEach((value,index)=>{if(isFullyApproved(value))approvedCells.push({r:sheetRow,c:index+3})});
+        aoa.push(outputRow);
+      }
+      aoa.push([]);
+    }
+    const ws=XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols']=[{wch:8},{wch:15},{wch:36},{wch:38},{wch:28},{wch:28},{wch:28}];
+    ws['!rows']=aoa.map(row=>({hpt:row.length===1?22:45}));
+    for(let rowIndex=0;rowIndex<aoa.length;rowIndex++){
+      const row=aoa[rowIndex];
+      if(row.length===1&&row[0]){
+        for(let column=0;column<7;column++){
+          const addr=XLSX.utils.encode_cell({r:rowIndex,c:column});
+          if(!ws[addr])ws[addr]={t:'s',v:''};
+          ws[addr].s={fill:{fgColor:{rgb:'EAF6EF'}},font:{color:{rgb:'075B4B'},bold:true}};
+        }
+      }
+      if(row[0]==='S.No'){
+        for(let column=0;column<7;column++){
+          const addr=XLSX.utils.encode_cell({r:rowIndex,c:column});
+          ws[addr].s={fill:{fgColor:{rgb:'075B4B'}},font:{color:{rgb:'FFFFFF'},bold:true}};
+        }
+      }
+    }
+    approvedCells.forEach(({r,c})=>{
+      const addr=XLSX.utils.encode_cell({r,c});
+      ws[addr].s={fill:{fgColor:{rgb:'DFF3E6'}},font:{color:{rgb:'075B4B'},bold:true}};
+    });
+    ws['!freeze']={xSplit:0,ySplit:1};
+    XLSX.utils.book_append_sheet(wb,ws,'Content Status Report');
+    XLSX.writeFile(wb,'VIT_Content_Status_Report.xlsx');
+  });
+  function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+  </script>
+</body>
+</html>
