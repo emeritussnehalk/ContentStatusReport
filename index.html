@@ -4,17 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Content Status Report</title>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
   <style>
     :root{--green:#075b4b;--leaf:#1a886d;--mint:#eaf6ef;--ink:#162d28;--muted:#64736f;--line:#d8e4df;--paper:#fffdf9;--warn:#9d5b00;--red:#9b3425}
     *{box-sizing:border-box} body{margin:0;background:#f2f7f3;color:var(--ink);font:14px/1.45 Inter,Segoe UI,Arial,sans-serif}
     header{background:white;color:var(--ink);padding:10px clamp(20px,5vw,56px);display:flex;gap:16px;align-items:center;border-bottom:1px solid var(--line)}.brand-logo{width:190px;max-width:40vw;height:auto}.header-copy{border-left:1px solid #b9d8c9;padding-left:16px;line-height:1.15}.header-copy strong{display:block;color:var(--green);font-size:17px}.header-copy span{display:block;font-size:16px;margin-top:4px}
     main{max-width:1400px;margin:28px auto;padding:0 24px 44px}.hero{display:flex;justify-content:space-between;gap:24px;align-items:end;margin-bottom:22px}.hero h1{font-size:29px;line-height:1.15;margin:0 0 7px;letter-spacing:-.7px}.hero p{color:var(--muted);margin:0;max-width:700px}
     .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:0 5px 18px #07412b0b}.upload-grid{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}.drop{border:1.5px dashed #78a899;background:#f8fcf9;border-radius:10px;padding:18px}.drop strong{display:block;color:var(--green);margin-bottom:4px}.drop small{color:var(--muted)}input[type=file]{margin-top:12px;max-width:100%}.file-list{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:13px}.file-list li{padding:2px 0}
+    body.has-results main{margin-top:18px}.has-results .hero{margin-bottom:12px}.has-results .hero h1{font-size:24px;margin-bottom:0}.has-results .hero p{display:none}.has-results .panel{padding:12px 16px;border-radius:10px}.has-results .upload-grid{gap:14px}.has-results .drop{padding:10px 12px;border-radius:8px}.has-results .drop strong{display:inline;margin-right:12px}.has-results .drop small{display:none}.has-results input[type=file]{margin-top:0}.has-results .file-list{display:flex;gap:8px 18px;flex-wrap:wrap;margin:8px 0 0;padding-left:0;list-style:none}.has-results .file-list li{padding:0}.has-results .status{margin-top:8px;font-size:13px}.has-results #generate{padding:10px 16px;white-space:nowrap}
     button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer;background:var(--green);color:white;font-size:14px}button:hover{background:#06483b}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:#e5f0ea;color:var(--green);border:1px solid #bcd8c9}.secondary:hover{background:#d9e9df}.status{margin:14px 0 0;color:var(--muted)}.status.error{color:var(--red)}
-    .toolbar{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}.toolbar input,.toolbar select{border:1px solid var(--line);border-radius:8px;background:white;padding:10px 12px;font:inherit;color:var(--ink)}.toolbar input{min-width:260px;flex:1}.toolbar .spacer{flex:1}.summary{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}.chip{background:#e7f3ec;color:#145c49;border-radius:100px;padding:6px 10px;font-size:12px;font-weight:650}.chip.warning{background:#fff0d5;color:var(--warn)}.chip.bad{background:#f9e4e1;color:var(--red)}
-    .report{margin-top:16px}.report-sheet{display:none}.report-sheet.active{display:block}.section-title{color:var(--green);font-size:18px;margin:22px 0 10px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:white}table{width:100%;border-collapse:collapse;min-width:900px}th{background:var(--green);color:white;text-align:left;padding:11px 12px;font-size:12px;letter-spacing:.2px;position:sticky;top:0}td{padding:11px 12px;border-bottom:1px solid #e7eeea;vertical-align:top}tr:last-child td{border-bottom:0}.program td{background:var(--mint);color:var(--green);font-weight:800;text-transform:uppercase;font-size:12px;letter-spacing:.4px}.course-code{font-weight:700;white-space:nowrap}.status-text{white-space:pre-line;font-size:13px}.status-text.approved-cell{background:#dff3e6;color:#075b4b;font-weight:650}.empty{padding:42px;text-align:center;color:var(--muted);background:white;border:1px dashed var(--line);border-radius:10px}
-    @media(max-width:650px){header{padding:18px 20px}.sub{display:none}main{padding:0 14px}.upload-grid{grid-template-columns:1fr}.hero{display:block}.hero h1{font-size:25px}.toolbar input{min-width:100%}}
+    .tabs{display:flex;gap:8px;margin-top:24px;border-bottom:1px solid var(--line)}.tab-btn{background:transparent;color:var(--muted);border-radius:8px 8px 0 0;border:1px solid transparent;border-bottom:0;padding:10px 14px}.tab-btn:hover{background:#eaf6ef;color:var(--green)}.tab-btn.active{background:white;color:var(--green);border-color:var(--line);position:relative;top:1px}.tab-panel{display:none}.tab-panel.active{display:block}.toolbar{margin-top:18px;display:grid;grid-template-columns:160px minmax(260px,520px) 1fr auto;gap:16px;align-items:center}.toolbar input,.toolbar select{border:1px solid var(--line);border-radius:10px;background:white;padding:13px 16px;font:inherit;color:var(--ink);height:52px}.toolbar input{width:100%}.toolbar .spacer{display:block}.summary{display:flex;align-items:center;gap:0;margin:12px 0 0;background:#f8fcfa;border:1px solid #d7e6df;border-radius:8px;flex-wrap:wrap}.summary-card{display:flex;align-items:baseline;gap:8px;padding:8px 12px;border-right:1px solid #e2ece7;background:transparent}.summary-card:last-child{border-right:0}.summary-card strong{color:#07352d;font-size:16px;line-height:1;font-weight:650}.summary-card span{color:#60736d;font-size:12px;white-space:nowrap}.summary-card.good strong{color:#075b4b}.summary-card.warning strong{color:#9d5b00}.summary-card.bad strong{color:#9b3425}.summary-card.time strong{font-size:13px;font-weight:600}.summary-layout{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px}.summary-block{background:white;border:1px solid #cfdfd8;border-radius:8px;padding:12px;box-shadow:0 3px 10px #07412b06}.summary-block.wide{grid-column:1/-1}.summary-block h2{font-size:14px;margin:0 0 10px;color:#075b4b;font-weight:650}.subtables{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.subtable-title{font-size:12px;font-weight:650;color:#60736d;margin:0 0 6px;text-transform:uppercase;letter-spacing:.25px}.summary-table-wrap{overflow:auto;border:1px solid #dbe8e2;border-radius:8px;background:white}.summary-table{width:100%;min-width:0;border-collapse:separate;border-spacing:0}.summary-table th{position:static;background:#f3f8f5;color:#075b4b;text-align:right;font-size:11px;font-weight:650;padding:8px 10px;border-bottom:1px solid #dbe8e2}.summary-table th:first-child,.summary-table th:nth-child(2){text-align:left}.summary-table td{padding:8px 10px;border-bottom:1px solid #edf3f0;text-align:right;color:#183932;font-size:13px;font-weight:400}.summary-table td:first-child,.summary-table td:nth-child(2){text-align:left}.summary-table td:first-child{font-weight:600;color:#082f2a}.summary-table tr:last-child td{border-bottom:0}.summary-table tr:nth-child(even) td{background:#fbfdfb}.summary-table .program-label{color:#60736d;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.2px}.summary-table td.status-good{background:#f1faf4;color:#0a5d46;font-weight:650}.summary-table td.status-warn{background:#fff8ea;color:#8a5100;font-weight:650}.summary-table td.status-bad{background:#fff3f1;color:#8f2c21;font-weight:650}.attention-list{margin:0;padding-left:18px;color:var(--ink)}.attention-list li{margin:7px 0}.legend{display:flex;gap:10px;flex-wrap:wrap}.legend span{display:inline-flex;align-items:center;gap:7px;background:#f8fcf9;border:1px solid var(--line);border-radius:100px;padding:7px 10px;font-size:12px}.legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+    .report{margin-top:16px}.report-sheet{display:none}.report-sheet.active{display:block}.section-title{color:var(--green);font-size:18px;margin:22px 0 10px}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:white}table{width:100%;border-collapse:collapse;min-width:900px}th{background:var(--green);color:white;text-align:left;padding:11px 12px;font-size:12px;font-weight:650;letter-spacing:.2px;position:sticky;top:0}td{padding:11px 12px;border-bottom:1px solid #e7eeea;vertical-align:top;font-weight:400}tr:last-child td{border-bottom:0}.program td{background:var(--mint);color:var(--green);font-weight:650;text-transform:uppercase;font-size:12px;letter-spacing:.4px}.course-code{font-weight:600;white-space:nowrap}.status-text{white-space:pre-line;font-size:13px}.status-text.approved-cell{background:#dff3e6;color:#075b4b;font-weight:600}.empty{padding:42px;text-align:center;color:var(--muted);background:white;border:1px dashed var(--line);border-radius:10px}
+    @media(max-width:1100px){.toolbar{grid-template-columns:150px 1fr auto}.toolbar .spacer{display:none}}@media(max-width:800px){.summary-layout,.subtables{grid-template-columns:1fr}}@media(max-width:650px){header{padding:18px 20px}.sub{display:none}main{padding:0 14px}.upload-grid{grid-template-columns:1fr}.hero{display:block}.hero h1{font-size:25px}.toolbar{grid-template-columns:1fr}.toolbar input{min-width:100%}}
   </style>
 </head>
 <body>
@@ -22,12 +23,18 @@
   <main>
     <div class="hero"><div><h1>Content Status Report</h1><p>Upload the video and content-review workbooks to prepare a week-wise MBA and MCA content status report.</p></div></div>
     <section class="panel">
-      <div class="upload-grid"><div class="drop"><strong>Upload source workbooks</strong><small>Upload both Excel files together. The tool identifies the source by its columns and uses only the <b>Content_Review_Records_V2</b> sheet for lecture notes, quizzes, and web links.</small><br><input id="files" type="file" accept=".xlsx,.xls" multiple><ul id="fileList" class="file-list"></ul></div><button id="generate" disabled>Generate report</button></div>
+      <div class="upload-grid"><div class="drop"><strong>Upload source workbooks</strong><small>Upload both Excel files together. The tool identifies video and content-review sheets by their columns.</small><br><input id="files" type="file" accept=".xlsx,.xls" multiple><ul id="fileList" class="file-list"></ul></div><button id="generate" disabled>Generate report</button></div>
       <div id="message" class="status">Select the two source workbooks to begin.</div>
     </section>
     <section id="results" hidden>
-      <div class="toolbar"><select id="period"><option value="W1-W3">W1–W3</option><option value="W4-W6">W4–W6</option><option value="W7-W9">W7–W9</option><option value="W10-W12">W10–W12</option></select><input id="search" type="search" placeholder="Search course code or name"><span class="spacer"></span><button id="download" class="secondary">Download Excel report</button></div>
-      <div id="summary" class="summary"></div><div id="report" class="report"></div>
+      <div class="tabs"><button class="tab-btn active" data-tab="generateTab">Generated Report</button><button class="tab-btn" data-tab="summaryTab">Content Summary</button></div>
+      <div class="toolbar"><select id="period"><option value="All">All</option><option value="W1-W3">W1-W3</option><option value="W4-W6">W4-W6</option><option value="W7-W9">W7-W9</option><option value="W10-W12">W10-W12</option></select><input id="search" type="search" placeholder="Search course code or name"><span class="spacer"></span><button id="download" class="secondary">Download Excel report</button></div>
+      <div id="generateTab" class="tab-panel active">
+        <div id="report" class="report"></div>
+      </div>
+      <div id="summaryTab" class="tab-panel">
+        <div id="contentSummary"></div>
+      </div>
     </section>
   </main>
   <script>
@@ -35,9 +42,9 @@
     ['MBA',1,'OLMBA604','Consumer Behaviour'],['MBA',2,'OLMBA618','Service Marketing'],['MBA',3,'OLMBA620','Sales and Distribution Management'],['MBA',4,'OLMBA635','Strategic HRM'],['MBA',5,'OLMBA623','Costing Methods and Techniques'],['MBA',6,'OLMBA626','Wealth Tech and Lending Tech'],['MBA',7,'OLMBA629','Applied Fintech for Business'],['MBA',8,'OLMBA607','Materials Management'],['MBA',9,'OLMBA641','Project Management'],['MBA',10,'OLMBA644','Quality Management'],
     ['MCA',11,'OLMCA611','Data Mining Techniques'],['MCA',12,'OLMCA615','Software Project Management'],['MCA',13,'OLMCA618','Data Visualization'],['MCA',14,'OLMCA610','Blockchain Technologies'],['MCA',15,'OLMCA622','Information Security'],['MCA',16,'OLMCA623','Penetration Testing']
   ];
-  const PERIODS={'W1-W3':[1,2,3],'W4-W6':[4,5,6],'W7-W9':[7,8,9],'W10-W12':[10,11,12]};
+  const PERIODS={'All':[1,2,3,4,5,6,7,8,9,10,11,12],'W1-W3':[1,2,3],'W4-W6':[4,5,6],'W7-W9':[7,8,9],'W10-W12':[10,11,12]};
   const fileInput=document.querySelector('#files'), generateBtn=document.querySelector('#generate'), message=document.querySelector('#message');
-  let source={videos:[],content:[]}, report={};
+  let source={videos:[],content:[]}, report={}, lastGeneratedAt='';
   const val=(row, names)=>{for(const n of names){if(Object.prototype.hasOwnProperty.call(row,n)) return row[n]} return ''};
   const clean=v=>String(v??'').trim();
   function codeFrom(v){const found=clean(v).match(/OLM(?:BA|CA)\d+/i);return found?found[0].toUpperCase():clean(v).toUpperCase()}
@@ -47,11 +54,11 @@
   fileInput.addEventListener('change',()=>{const files=[...fileInput.files];document.querySelector('#fileList').innerHTML=files.map(f=>`<li>${escapeHtml(f.name)}</li>`).join('');generateBtn.disabled=files.length<2;message.textContent=files.length?`${files.length} workbook${files.length>1?'s':''} selected.`:'Select the two source workbooks to begin.';message.className='status'});
   generateBtn.addEventListener('click', async()=>{try{generateBtn.disabled=true;message.className='status';message.textContent='Reading uploaded workbooks…';source={videos:[],content:[]};for(const file of fileInput.files){for(const {name,rows} of await readFile(file)){
       const cols=Object.keys(rows[0]||{});const hasToc=cols.some(c=>/TOC\s*Sr/i.test(c));const hasContent=cols.includes('Content Type')&&cols.includes('Status')&&cols.some(c=>/^Subject Code$/i.test(c));
-      if(hasToc) source.videos.push(...rows);if(hasContent&&name==='Content_Review_Records_V2') source.content.push(...rows);
+      if(hasToc) source.videos.push(...rows);if(hasContent) source.content.push(...rows);
     }}
     if(!source.videos.length)throw new Error('No video-data sheet was found. Expected a sheet with “TOC Sr No.” and “Status”.');
-    if(!source.content.length)throw new Error('The “Content_Review_Records_V2” sheet was not found in the uploaded content-review workbook.');
-    report=buildReport();document.querySelector('#results').hidden=false;render();message.textContent=`Report created from ${source.videos.length} video records and ${source.content.length} content-review records.`;generateBtn.disabled=false;
+    if(!source.content.length)throw new Error('No content-review sheet was found. Expected columns like “Subject Code”, “Content Type”, “Week”, and “Status”.');
+    lastGeneratedAt=new Date().toLocaleString();report=buildReport();document.body.classList.add('has-results');document.querySelector('#results').hidden=false;render();message.textContent=`Report created from ${source.videos.length} video records and ${source.content.length} content-review records.`;generateBtn.disabled=false;
   }catch(e){message.textContent=e.message;message.className='status error';generateBtn.disabled=false}});
   function buildReport(){const out={};for(const [label,weeks] of Object.entries(PERIODS)){out[label]=ROSTER.map(([program,no,code,name])=>({program,no,code,name,videos:summarizeVideos(code,weeks),notes:summarizeContent(code,weeks,'LECTURE_NOTES'),quiz:summarizeContent(code,weeks,'MCQ_QUIZZES'),links:summarizeContent(code,weeks,'WEB_LINKS')}))}return out}
   function summarizeVideos(code,weeks){const items=source.videos.map(r=>({code:codeFrom(val(r,['Subject Code'])),toc:clean(val(r,['TOC Sr No.'])),week:weekFromToc(val(r,['TOC Sr No.'])),status:normStatus(val(r,['Status']))})).filter(r=>r.code===code&&weeks.includes(r.week)&&r.toc);if(!items.length)return 'Not Available';const statuses=[...new Set(items.map(x=>x.status))];if(statuses.length===1)return `${periodText(weeks)} - ${statuses[0]}`;const approved=items.filter(x=>x.status==='Approved');const exceptions=items.filter(x=>x.status!=='Approved');if(approved.length&&exceptions.length)return `${periodText(weeks)} - Approved\nexcept ${groupTocs(exceptions)} `;return groupTocs(items)}
@@ -62,24 +69,41 @@
   function periodText(weeks){return weeks.length===1?`W${weeks[0]}`:`W${weeks[0]} to W${weeks[weeks.length-1]}`}
   function isFullyApproved(value){return /^W\d+(?: to W\d+)? - Approved$/i.test(clean(value))}
   function statusClass(value){return `status-text${isFullyApproved(value)?' approved-cell':''}`}
-  function render(){const label=document.querySelector('#period').value,q=document.querySelector('#search').value.trim().toLowerCase();const rows=report[label];const matches=rows.filter(r=>!q||r.code.toLowerCase().includes(q)||r.name.toLowerCase().includes(q));let html='',last='';for(const r of matches){if(last!==r.program){html+=`<tr class="program"><td colspan="7">${r.program}</td></tr>`;last=r.program}html+=`<tr><td>${r.no}</td><td class="course-code">${r.code}</td><td>${r.name}</td><td class="${statusClass(r.videos)}">${r.videos}</td><td class="${statusClass(r.notes)}">${r.notes}</td><td class="${statusClass(r.quiz)}">${r.quiz}</td><td class="${statusClass(r.links)}">${r.links}</td></tr>`}document.querySelector('#report').innerHTML=matches.length?`<div class="table-wrap"><table><thead><tr><th>S.No</th><th>Course Code</th><th>Course Name</th><th>Videos</th><th>Lecture Notes</th><th>Quiz</th><th>Web Links</th></tr></thead><tbody>${html}</tbody></table></div>`:'<div class="empty">No courses match your search.</div>';const values=matches.flatMap(x=>[x.videos,x.notes,x.quiz,x.links]);const unavailable=values.filter(x=>x==='Not Available').length;const pending=values.filter(x=>/Pending for review/i.test(x)).length;document.querySelector('#summary').innerHTML=`<span class="chip">${matches.length} courses shown</span><span class="chip">${source.videos.length} video records</span><span class="chip">${source.content.length} review records</span>${pending?`<span class="chip warning">${pending} pending items</span>`:''}${unavailable?`<span class="chip bad">${unavailable} not available</span>`:''}`}
+  const STATUS_FIELDS=[['videos','Videos'],['notes','Lecture Notes'],['quiz','Quiz'],['links','Web Links']];
+  const CONTENT_TYPES={notes:'LECTURE_NOTES',quiz:'MCQ_QUIZZES',links:'WEB_LINKS'};
+  function classifyStatus(value){const v=clean(value);if(isFullyApproved(v)||/^Approved$/i.test(v))return 'Approved';if(v==='Not Available')return 'Not Available';if(/Pending for review/i.test(v))return 'Pending for review';if(/Faculty comments received/i.test(v))return 'Faculty comments received';return v||'Not Available'}
+  function emptyCounts(){return {'Approved':0,'Pending for review':0,'Not Available':0,'Faculty comments received':0,'Other':0}}
+  function addCount(counts,status){const key=counts[status]===undefined?'Other':status;counts[key]++}
+  function countValues(values){const counts=emptyCounts();values.forEach(value=>addCount(counts,classifyStatus(value)));return counts}
+  function buildSummary(rows){const values=rows.flatMap(x=>STATUS_FIELDS.map(([field])=>x[field]));const counts=countValues(values);const total=values.length;const complete=rows.filter(x=>STATUS_FIELDS.every(([field])=>isFullyApproved(x[field]))).length;const programs={MBA:{...emptyCounts(),total:0,complete:0},MCA:{...emptyCounts(),total:0,complete:0}};rows.forEach(row=>{if(programs[row.program]){programs[row.program].total+=STATUS_FIELDS.length;STATUS_FIELDS.forEach(([field])=>addCount(programs[row.program],classifyStatus(row[field])));if(STATUS_FIELDS.every(([field])=>isFullyApproved(row[field])))programs[row.program].complete++}});return {total,counts,complete,approval:total?Math.round((counts.Approved/total)*100):0,programs}}
+  function statusForVideos(code,week){const records=source.videos.map(r=>({code:codeFrom(val(r,['Subject Code'])),week:weekFromToc(val(r,['TOC Sr No.'])),status:normStatus(val(r,['Status']))})).filter(r=>r.code===code&&r.week===week);return records.length?worstStatus(records.map(x=>x.status)):'Not Available'}
+  function statusForContent(code,week,type){const records=source.content.map(r=>({code:codeFrom(val(r,['Subject Code'])),week:Number(val(r,['Week'])),type:clean(val(r,['Content Type'])).toUpperCase(),status:normStatus(val(r,['Status']))})).filter(r=>r.code===code&&r.week===week&&r.type===type);return records.length?worstStatus(records.map(x=>x.status)):'Not Available'}
+  function buildWeekSummary(rows,weeks){return weeks.map(week=>{const counts=emptyCounts();rows.forEach(row=>{addCount(counts,classifyStatus(statusForVideos(row.code,week)));for(const type of Object.values(CONTENT_TYPES))addCount(counts,classifyStatus(statusForContent(row.code,week,type)))});return {week:`W${week}`,counts}})}
+  function buildContentTypeSummary(rows){return STATUS_FIELDS.map(([field,label])=>({label,counts:countValues(rows.map(row=>row[field]))}))}
+  function buildContentTypeProgramSummary(rows){return STATUS_FIELDS.flatMap(([field,label])=>['MBA','MCA'].map(program=>({label,program,counts:countValues(rows.filter(row=>row.program===program).map(row=>row[field]))})))}
+  function buildWeekProgramSummary(rows,weeks){return weeks.flatMap(week=>['MBA','MCA'].map(program=>{const counts=emptyCounts();rows.filter(row=>row.program===program).forEach(row=>{addCount(counts,classifyStatus(statusForVideos(row.code,week)));for(const type of Object.values(CONTENT_TYPES))addCount(counts,classifyStatus(statusForContent(row.code,week,type)))});return {week:`W${week}`,program,counts}}))}
+  function buildWeekContentProgramSummary(rows,weeks){return weeks.flatMap(week=>['MBA','MCA'].flatMap(program=>STATUS_FIELDS.map(([field,label])=>{const counts=emptyCounts();rows.filter(row=>row.program===program).forEach(row=>{const status=field==='videos'?statusForVideos(row.code,week):statusForContent(row.code,week,CONTENT_TYPES[field]);addCount(counts,classifyStatus(status))});return {week:`W${week}`,program,label,counts}})))}
+  function summaryCard(value,label,type=''){return `<div class="summary-card ${type}"><strong>${value}</strong><span>${label}</span></div>`}
+  function statusCells(counts){return `<td class="status-good">${counts.Approved}</td><td class="${counts['Pending for review']?'status-warn':''}">${counts['Pending for review']}</td><td class="${counts['Not Available']?'status-bad':''}">${counts['Not Available']}</td><td class="${counts['Faculty comments received']?'status-warn':''}">${counts['Faculty comments received']}</td><td>${counts.Other}</td>`}
+  function countTable(headers,rows){return `<div class="summary-table-wrap"><table class="summary-table"><thead><tr>${headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`}
+  function programSubtables(title,headers,programRows){return `<div class="subtables">${['MBA','MCA'].map(program=>`<div><div class="subtable-title">${program} ${title}</div>${countTable(headers,programRows(program))}</div>`).join('')}</div>`}
+  function selectedRows(){const label=document.querySelector('#period').value,q=document.querySelector('#search').value.trim().toLowerCase();const rows=report[label]||[];return {label,weeks:PERIODS[label],matches:rows.filter(r=>!q||r.code.toLowerCase().includes(q)||r.name.toLowerCase().includes(q))}}
+  function renderSummaryPanel(matches,label,weeks){const summary=buildSummary(matches);const cards=[summaryCard(summary.total,'total items'),summaryCard(`${summary.approval}%`,'approved','good'),summaryCard(summary.counts.Approved,'approved items','good'),summaryCard(summary.counts['Pending for review'],'pending',summary.counts['Pending for review']?'warning':''),summaryCard(summary.counts['Not Available'],'not available',summary.counts['Not Available']?'bad':''),summaryCard(summary.counts['Faculty comments received'],'faculty comments',summary.counts['Faculty comments received']?'warning':''),summaryCard(`${summary.complete}/${matches.length}`,'complete courses','good'),summaryCard(lastGeneratedAt||'-','last generated','time')].join('');const contentRows=program=>buildContentTypeProgramSummary(matches).filter(x=>x.program===program).map(x=>`<tr><td>${x.label}</td>${statusCells(x.counts)}</tr>`).join('');const programRows=Object.entries(summary.programs).map(([program,counts])=>`<tr><td>${program}</td>${statusCells(counts)}<td>${counts.complete}</td></tr>`).join('');document.querySelector('#contentSummary').innerHTML=`<div class="summary-layout"><div class="summary-block wide">${'<h2>Program Summary</h2>'+countTable(['Program','Approved','Pending','Not Available','Faculty Comments','Other','Complete'],programRows)+`<div class="summary">${cards}</div>`}</div><div class="summary-block wide">${'<h2>Content Type Summary</h2>'+programSubtables('Content', ['Content Type','Approved','Pending','Not Available','Faculty Comments','Other'], contentRows)}</div><div class="summary-block wide"><h2>Status Legend</h2><div class="legend"><span><i style="background:#dff3e6"></i>Approved</span><span><i style="background:#fff0d5"></i>Pending</span><span><i style="background:#f9e4e1"></i>Not Available</span><span><i style="background:#ffe0bc"></i>Faculty Comments</span></div></div></div>`}
+  function render(){const {label,weeks,matches}=selectedRows();let html='',last='';for(const r of matches){if(last!==r.program){html+=`<tr class="program"><td colspan="7">${r.program}</td></tr>`;last=r.program}html+=`<tr><td>${r.no}</td><td class="course-code">${r.code}</td><td>${r.name}</td><td class="${statusClass(r.videos)}">${r.videos}</td><td class="${statusClass(r.notes)}">${r.notes}</td><td class="${statusClass(r.quiz)}">${r.quiz}</td><td class="${statusClass(r.links)}">${r.links}</td></tr>`}document.querySelector('#report').innerHTML=matches.length?`<div class="table-wrap"><table><thead><tr><th>S.No</th><th>Course Code</th><th>Course Name</th><th>Videos</th><th>Lecture Notes</th><th>Quiz</th><th>Web Links</th></tr></thead><tbody>${html}</tbody></table></div>`:'<div class="empty">No courses match your search.</div>';renderSummaryPanel(matches,label,weeks)}
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.tab-btn,.tab-panel').forEach(x=>x.classList.remove('active'));btn.classList.add('active');document.querySelector(`#${btn.dataset.tab}`).classList.add('active')}));
   document.querySelector('#period').addEventListener('change',render);document.querySelector('#search').addEventListener('input',render);
-  document.querySelector('#download').addEventListener('click',()=>{
+  function downloadWorkbook(){
     const wb=XLSX.utils.book_new();
-    const aoa=[];
+    const rows=report.All||[];
+    const aoa=[['S.No','Course Code','Course Name','Videos','Lecture Notes','Quiz','Web Links']];
     const approvedCells=[];
-    for(const [label,rows] of Object.entries(report)){
-      aoa.push([label]);
-      aoa.push(['S.No','Course Code','Course Name','Videos','Lecture Notes','Quiz','Web Links']);
-      let last='';
-      for(const row of rows){
-        if(last!==row.program){aoa.push([row.program]);last=row.program}
-        const outputRow=[row.no,row.code,row.name,row.videos,row.notes,row.quiz,row.links];
-        const sheetRow=aoa.length;
-        outputRow.slice(3).forEach((value,index)=>{if(isFullyApproved(value))approvedCells.push({r:sheetRow,c:index+3})});
-        aoa.push(outputRow);
-      }
-      aoa.push([]);
+    let last='';
+    for(const row of rows){
+      if(last!==row.program){aoa.push([row.program]);last=row.program}
+      const outputRow=[row.no,row.code,row.name,row.videos,row.notes,row.quiz,row.links];
+      const sheetRow=aoa.length;
+      outputRow.slice(3).forEach((value,index)=>{if(isFullyApproved(value))approvedCells.push({r:sheetRow,c:index+3})});
+      aoa.push(outputRow);
     }
     const ws=XLSX.utils.aoa_to_sheet(aoa);
     ws['!cols']=[{wch:8},{wch:15},{wch:36},{wch:38},{wch:28},{wch:28},{wch:28}];
@@ -90,24 +114,25 @@
         for(let column=0;column<7;column++){
           const addr=XLSX.utils.encode_cell({r:rowIndex,c:column});
           if(!ws[addr])ws[addr]={t:'s',v:''};
-          ws[addr].s={fill:{fgColor:{rgb:'EAF6EF'}},font:{color:{rgb:'075B4B'},bold:true}};
+          ws[addr].s={fill:{patternType:'solid',fgColor:{rgb:'EAF6EF'}},font:{color:{rgb:'075B4B'},bold:true}};
         }
       }
       if(row[0]==='S.No'){
         for(let column=0;column<7;column++){
           const addr=XLSX.utils.encode_cell({r:rowIndex,c:column});
-          ws[addr].s={fill:{fgColor:{rgb:'075B4B'}},font:{color:{rgb:'FFFFFF'},bold:true}};
+          ws[addr].s={fill:{patternType:'solid',fgColor:{rgb:'075B4B'}},font:{color:{rgb:'FFFFFF'},bold:true}};
         }
       }
     }
     approvedCells.forEach(({r,c})=>{
       const addr=XLSX.utils.encode_cell({r,c});
-      ws[addr].s={fill:{fgColor:{rgb:'DFF3E6'}},font:{color:{rgb:'075B4B'},bold:true}};
+      ws[addr].s={fill:{patternType:'solid',fgColor:{rgb:'DFF3E6'}},font:{color:{rgb:'075B4B'},bold:true}};
     });
     ws['!freeze']={xSplit:0,ySplit:1};
     XLSX.utils.book_append_sheet(wb,ws,'Content Status Report');
     XLSX.writeFile(wb,'VIT_Content_Status_Report.xlsx');
-  });
+  }
+  document.querySelector('#download').addEventListener('click',downloadWorkbook);
   function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
   </script>
 </body>
